@@ -5,16 +5,18 @@
   ...
 }:
 let
-  kernel_version_compatible = lib.versionAtLeast config.boot.kernelPackages.kernel.version "6.10";
-in
-{
-  options.hardware.framework.enableKmod =
-    (lib.mkEnableOption "Enable the community created Framework kernel module that allows interacting with the embedded controller from sysfs.")
-    // {
-      # enable by default on NixOS >= 24.05 and kernel >= 6.10
-      default = lib.and (lib.versionAtLeast (lib.versions.majorMinor lib.version) "24.05") kernel_version_compatible;
-      defaultText = "enabled by default on NixOS >= 24.05 and kernel >= 6.10";
-    };
+  kernel_at_least_6_10 = lib.versionAtLeast config.boot.kernelPackages.kernel.version "6.10";
+  kernel_under_6_12 = lib.versionOlder config.boot.kernelPackages.kernel.version "6.12";
+in {
+  options.hardware.framework.enableKmod = (lib.mkEnableOption
+    "Enable the community created Framework kernel module that allows interacting with the embedded controller from sysfs."
+  ) // {
+    # enable by default on NixOS >= 24.05 and kernel >= 6.10
+    default = lib.and
+      (lib.versionAtLeast (lib.versions.majorMinor lib.version) "24.05")
+      (lib.and kernel_at_least_6_10 kernel_under_6_12);
+    defaultText = "enabled by default on NixOS >= 24.05 and kernel >= 6.10";
+  };
 
   config.boot = lib.mkIf config.hardware.framework.enableKmod {
     extraModulePackages = with config.boot.kernelPackages; [
@@ -28,7 +30,7 @@ in
     ];
 
     # add required patch if enabled on kernel <6.10
-    kernelPatches = lib.mkIf (!kernel_version_compatible) [
+    kernelPatches = lib.mkIf (!kernel_at_least_6_10) [
       rec {
         name = "platform/chrome: cros_ec_lpc: add support for AMD Framework Laptops";
         msgid = "20240403004713.130365-1-dustin@howett.net";

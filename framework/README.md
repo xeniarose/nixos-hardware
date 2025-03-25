@@ -56,7 +56,9 @@ module for your model's configuration. Otherwise, it can be added alongside the 
 `hardware.framework.enableKmod` enables the [community-created Framework kernel
 module](https://github.com/DHowett/framework-laptop-kmod) which exposes EC functionality like battery charge limit,
 privacy switches, and system LEDs as standard driver interfaces. This enables, for example, configuring the charge limit
-using the KDE settings GUI. The option is enabled by default when NixOS `>= 24.05` and linux kernel version `>= 6.10`.
+using the KDE settings GUI. The option is enabled by default when NixOS `>= 24.05` and linux kernel version is between
+`6.10` and `6.12` (inclusive). On kernel 6.12 and later, the module is no longer needed as the functionality has been
+integrated with the kernel itself.
 
 On AMD Framework 13 and 16, before kernel 6.10, additional kernel patches are required for the kernel module to function
 properly. Manually setting `hardware.framework.enableKmod = true` will apply the patches, requiring a kernel
